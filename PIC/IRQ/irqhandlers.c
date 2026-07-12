@@ -22,6 +22,8 @@ extern void irq45();
 extern void irq46();
 extern void irq47();
 
+void process_keyboard_interrupt();
+
 void (*irq_handlers[16])() =
 {
     irq32,
@@ -58,12 +60,10 @@ void irq_handlers_init()
 
 void irq_handler(struct irq_frame* register_state)
 {
-    put_str("PIC INTERRUPT IGNORED: ");
-
-    char buffer[32];
-    uint32_to_str(register_state->irq, buffer);
-    put_str(buffer);
-    put_char('\n');
+    if(register_state->irq == 33)
+    {
+        process_keyboard_interrupt();
+    }
 
     if (register_state->irq >= 40)
         outb(0xA0, 0x20); // slave PIC

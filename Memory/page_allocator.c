@@ -41,14 +41,6 @@ void set_frame_used(void* frame)
 
 void mark_kernel_used(uint32_t kernel_start, uint32_t kernel_end)
 {
-    char buffer[64];
-    buffer[63] = '\0';
-    uint32_to_str(kernel_start, buffer);
-    put_str(strcat(buffer, " - Kernel Start\n"));
-    uint32_to_str(kernel_end, buffer);
-    put_str(strcat(buffer, " - Kernel End\n"));
-
-
     uintptr_t firstframe = ((uintptr_t)kernel_start - ((uintptr_t)kernel_start % PAGE_SIZE)); 
     uintptr_t lastframe = ((uintptr_t)kernel_end - ((uintptr_t)kernel_end % PAGE_SIZE));       
     for (uintptr_t i = firstframe; i <= lastframe; i += PAGE_SIZE)
@@ -58,8 +50,28 @@ void mark_kernel_used(uint32_t kernel_start, uint32_t kernel_end)
     }
 }
 
+uint32_t get_physical_address(uint32_t virtual)
+{
+    uint32_t pd_index = virtual >> 22;
+    uint32_t pt_index = (virtual >> 12) & 0x3FF;
+    uint32_t offset = virtual & 0xFFF;
+
+    uint32_t entry = page_tables[pd_index][pt_index];
+
+    if (!(entry & 0x1))
+    {
+        return 0; // not mapped
+    }
+
+    uint32_t physical_page = entry & 0xFFFFF000;
+
+    return physical_page + offset;
+}
+
 void free_frame(void* frame)
 {
+    put_str("Freeing frame\n");
+    frame = (void*)get_physical_address((uint32_t)frame);
     int index = (uintptr_t)frame/PAGE_SIZE;
     frame_map[index] = frame_map[index] ^ 0x01;
     set_frame_owner(frame, OWNER_FREE);

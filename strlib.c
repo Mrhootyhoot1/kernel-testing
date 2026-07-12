@@ -2,16 +2,16 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
-uint16_t currentChar = 1;
+uint16_t currentChar = 0;
 
 //returns the size of the new string
-int uint32_to_str(uint32_t num, char* buffer)
+char* uint32_to_str(uint32_t num, char* buffer)
 {
     if (num == 0)
     {
         buffer[0] = '0';
         buffer[1] = '\0';
-        return 1;
+        return buffer;
     }
 
     int i = 0;
@@ -30,7 +30,7 @@ int uint32_to_str(uint32_t num, char* buffer)
     }
 
     buffer[i] = '\0';
-    return i;
+    return buffer;
 }
 
 uint32_t str_to_uint32(char* str, int length)
@@ -54,7 +54,7 @@ uint32_t str_to_uint32(char* str, int length)
 
 void clear()
 {
-    currentChar = 1;
+    currentChar = 0;
 }
 
 void put_char(char c)
@@ -63,10 +63,17 @@ void put_char(char c)
     {
         clear();
     }
+
     volatile uint16_t* vga = (uint16_t*)0xB8000;
     if(c == '\n')
     {
         currentChar += VGA_WIDTH - (currentChar % VGA_WIDTH);
+        return;
+    }
+    else if(c == '\b' && currentChar > 0)
+    {
+        currentChar-=1;
+        vga[currentChar] = ((uint16_t)0x07 << 8) | (uint8_t)' ';
         return;
     }
 
@@ -97,11 +104,11 @@ char* strcat(char* source, char* dest)
 {
     int destLength = strlen(dest);
     int i;
-    for (i = 0; i != '\0'; i++)
+    for (i = 0; source[i] != '\0'; i++)
     {
-        dest[destLength + 1] = source[i];
+        dest[destLength + i] = source[i];
     }
-    dest[i + 1] = '\0';
+    dest[i + destLength] = '\0';
     return dest;
 }
 

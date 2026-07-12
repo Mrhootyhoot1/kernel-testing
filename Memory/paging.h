@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+extern uint32_t page_directory[1024] __attribute__((aligned(4096)));
+extern uint32_t page_tables[1024][1024] __attribute__((aligned(4096)));
+
 struct BiosMemoryMap
 {
     uint64_t base_address;
@@ -28,3 +31,5 @@ void list_frames();
 void* kmalloc(size_t size);
 void kfree();
 void init_memalloc();
+void map_page(uint32_t virt, uint32_t phys);
+uint32_t get_physical_address(uint32_t virtual);

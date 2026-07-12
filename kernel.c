@@ -63,13 +63,13 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     put_str("Initialized paging\n");
 
     char str[] = "On the heap\n";
-    char* buffer = kmalloc(1024);
+    char* buffer = kmalloc(16000);
 
     strcpy(buffer, str);
     put_str(buffer);
     kfree(buffer);
 
-    list_frames();
+  //  list_frames();
     for (;;)
     {
         __asm__ volatile ("hlt");

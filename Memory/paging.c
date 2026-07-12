@@ -54,6 +54,16 @@ void init_paging(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     page_allocator_init();
 }
 
+void map_page(uint32_t virt, uint32_t phys)
+{
+    uint32_t pd_index = virt >> 22;
+    uint32_t pt_index = (virt >> 12) & 0x3FF;
+
+    page_tables[pd_index][pt_index] =
+        (phys & 0xFFFFF000) | 0x3; // present + writable
+
+    asm volatile("invlpg (%0)" :: "r"(virt));
+}
 
 void create_page_table()
 {
