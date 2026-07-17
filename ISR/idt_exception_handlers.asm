@@ -5,6 +5,7 @@ global undefined_interrupt
 global isr%+%1
 
 isr%+%1:
+    cli
     push dword 0
     push dword %1
     jmp common_isr_handler
@@ -14,6 +15,7 @@ isr%+%1:
 global isr%+%1
 
 isr%+%1:
+    cli
     push dword %1
     jmp common_isr_handler
 %endmacro

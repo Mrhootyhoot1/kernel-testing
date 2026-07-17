@@ -132,6 +132,16 @@ void handle_page_fault(struct RegisterState* cpuState)
     put_char('\n');
 }
 
+void general_fault_handler(struct RegisterState* cpuState)
+{  
+    char buffer[32];
+    put_str("EIP: ");
+    put_str(uint32_to_str(cpuState->eip, buffer));
+    put_str(" Error code: ");
+    put_str(uint32_to_str(cpuState->error_code, buffer));
+    put_char('\n');
+}
+
 
 void exception_handler(struct RegisterState* cpuState){
     char interrupt[32] = "No Interrupt Found";
@@ -145,6 +155,9 @@ void exception_handler(struct RegisterState* cpuState){
     {
         case 14:
             handle_page_fault(cpuState);
+            break;
+        case 13:
+            general_fault_handler(cpuState);
             break;
     }
 

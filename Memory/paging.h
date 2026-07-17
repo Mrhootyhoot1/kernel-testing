@@ -29,7 +29,7 @@ void set_frame_used(void* frame);
 void mark_kernel_used(uint32_t kernel_start, uint32_t kernel_end);
 void list_frames();
 void* kmalloc(size_t size);
-void kfree();
+void kfree(void* memory);
 void init_memalloc();
 void map_page(uint32_t virt, uint32_t phys);
 uint32_t get_physical_address(uint32_t virtual);

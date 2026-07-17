@@ -33,16 +33,21 @@ void remap_pic_interrupts()
     outb(MASTER_COMMAND_PORT, START_INIT_COMMAND);
     outb(SLAVE_COMMAND_PORT, START_INIT_COMMAND);
 
-    outb(MASTER_DATA_PORT, 0x20);
-    outb(SLAVE_DATA_PORT, 0x28);
+    outb(MASTER_DATA_PORT, 0x20); //master starts interrupts at interrupt 32
+    outb(SLAVE_DATA_PORT, 0x28); //slave starts interrupts at interrupt 40
 
-    outb(MASTER_DATA_PORT, 0x04); 
-    outb(SLAVE_DATA_PORT, 0x02); 
+    outb(MASTER_DATA_PORT, 0x04); // slave on irq2
+    outb(SLAVE_DATA_PORT, 0x02); //slave cascade identity is 2
 
-    outb(MASTER_DATA_PORT, 0x01);
-    outb(SLAVE_DATA_PORT, 0x01);
+    outb(MASTER_DATA_PORT, 0x01); // pic must use 8086 mode
+    outb(SLAVE_DATA_PORT, 0x01);  // pic must use 8086 mode
 
 
     outb(MASTER_DATA_PORT, master_mask);
     outb(SLAVE_DATA_PORT, slave_mask);
+}
+
+void ack_interrupt()
+{
+    outb(0x20, 0x20);
 }

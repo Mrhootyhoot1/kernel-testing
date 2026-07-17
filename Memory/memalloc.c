@@ -43,7 +43,7 @@ void init_memalloc()
 
 void append_node(struct Allocation node)
 {
-    put_str("PAGE START, PAGE END: ");
+    //put_str("PAGE START, PAGE END: ");
     if ((list.count + 1) * sizeof(struct Allocation) > list.allocated_pages * PAGE_SIZE)
     {
         currentNode->nextNode = (struct Allocation*)allocate_frame();
@@ -58,16 +58,17 @@ void append_node(struct Allocation node)
     currentNode->endAddress = node.endAddress;
     currentNode->pageStart = node.pageStart;
     currentNode->pageEnd = node.pageEnd;
-    char buffer[32];
-    put_str(uint32_to_str(currentNode->pageStart, buffer));
-    put_str(", ");
-    put_str(uint32_to_str(currentNode->pageEnd, buffer));
-    put_char('\n');
+    //char buffer[32];
+    //put_str(uint32_to_str(currentNode->pageStart, buffer));
+    //put_str(", ");
+    //put_str(uint32_to_str(currentNode->pageEnd, buffer));
+    //put_char('\n');
     currentNode->nextNode = NULL;
 }
 
 void* kmalloc(size_t size)
 {
+    size = (size + 7) & ~7;
     static uint32_t remaining_page_space = 0; 
     static uintptr_t current_page_address = 0;
     struct Allocation* node = list.first;
@@ -90,17 +91,17 @@ void* kmalloc(size_t size)
     {
         uint32_t allocated_size = PAGE_SIZE;
         current_page_address = (uintptr_t)allocate_frame();
-        char buffer[32];
-        put_str("Page allocated at address: ");
-        put_str(uint32_to_str((uint32_t)current_page_address, buffer));
+        //char buffer[32];
+        //put_str("Page allocated at address: ");
+        //put_str(uint32_to_str((uint32_t)current_page_address, buffer));
         put_char('\n');
         while(allocated_size < size)
         {
             void* frame = allocate_frame();
             map_page((uint32_t)(uintptr_t)current_page_address + allocated_size, (uint32_t)frame);
-            put_str("Page allocated at virtual address: ");
-            put_str(uint32_to_str((uint32_t)current_page_address + allocated_size, buffer));
-            put_char('\n');
+            //put_str("Page allocated at virtual address: ");
+            //put_str(uint32_to_str((uint32_t)current_page_address + allocated_size, buffer));
+            //put_char('\n');
             allocated_size += PAGE_SIZE;
         }
         alloc.startAddress = current_page_address;
@@ -109,7 +110,7 @@ void* kmalloc(size_t size)
         alloc.pageEnd = alloc.pageStart + allocated_size/PAGE_SIZE;
         alloc.nextNode = NULL;
         append_node(alloc);
-        remaining_page_space = PAGE_SIZE - size;
+        remaining_page_space = allocated_size - size;
         return (void*)alloc.startAddress;
     }
     alloc.startAddress = current_page_address + (PAGE_SIZE - remaining_page_space);
@@ -119,7 +120,64 @@ void* kmalloc(size_t size)
     remaining_page_space -= size;
     append_node(alloc);
     return (void*)alloc.startAddress;
-} 
+}
+
+struct Allocation* get_allocation(void* memory)
+{
+    struct Allocation* node = list.first;
+    while (node->nextNode != NULL)
+    {
+        if (node->nextNode->startAddress == (uintptr_t)memory)
+        {
+            return node->nextNode;
+            node->nextNode = node->nextNode->nextNode;
+        }
+
+        node = node->nextNode;
+    }
+    return NULL;
+}
+
+void* krealloc(void* memory, size_t size)
+{
+    //this will end up being the node before the allocation
+    struct Allocation* node = list.first;
+    struct Allocation* allocation = NULL;
+    while (node->nextNode != NULL)
+    {
+        if (node->nextNode->startAddress == (uintptr_t)memory)
+        {
+            allocation = node->nextNode;
+        }
+
+        node = node->nextNode;
+    }
+
+    if (allocation == NULL)
+    {
+        return NULL;
+    }
+
+    if (allocation->endAddress - allocation->startAddress == size)
+    {
+        return memory;
+    }
+
+    if (allocation->nextNode->startAddress - allocation->endAddress >= size)
+    {
+        allocation->endAddress = allocation->startAddress + size;
+        return memory;
+    }
+
+    void* new_allocation = kmalloc(size);
+    if (new_allocation == NULL)
+    {
+        return NULL;
+    }
+    memmov(new_allocation, memory, size);
+    kfree(memory);
+    return new_allocation;
+}
 
 void kfree(void* memory)
 {

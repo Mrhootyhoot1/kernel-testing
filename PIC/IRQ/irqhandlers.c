@@ -57,7 +57,6 @@ void irq_handlers_init()
     }
 }
 
-
 void irq_handler(struct irq_frame* register_state)
 {
     if(register_state->irq == 33)
@@ -65,7 +64,7 @@ void irq_handler(struct irq_frame* register_state)
         process_keyboard_interrupt();
     }
 
-    if (register_state->irq >= 40)
+    if (register_state->irq >= 40) //check if the interrupt came from the slave
         outb(0xA0, 0x20); // slave PIC
 
     outb(0x20, 0x20);     // master PIC

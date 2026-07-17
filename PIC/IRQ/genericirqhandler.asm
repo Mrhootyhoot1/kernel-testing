@@ -1,6 +1,8 @@
 BITS 32
 global generic_irq_handler
 extern irq_handler
+extern timer_irq_handler
+extern put_char
 
 %macro IRQ_HANDLER 1
 global irq%+%1
@@ -15,7 +17,30 @@ section .data
 
 section .text
 
-IRQ_HANDLER 32
+global irq32
+irq32:
+    push ds
+    push es
+    push fs
+    push gs
+
+    pusha
+
+    push esp
+    call timer_irq_handler
+    add esp, 4
+
+    mov esp, eax ;move the stack to the returned 
+
+    popa
+    
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    iretd
+        
 IRQ_HANDLER 33
 IRQ_HANDLER 34
 IRQ_HANDLER 35
@@ -59,3 +84,5 @@ generic_irq_handler:
 
     add esp, 8       ; remove irq + error
     iretd
+
+section .note.GNU-stack noalloc noexec nowrite progbits

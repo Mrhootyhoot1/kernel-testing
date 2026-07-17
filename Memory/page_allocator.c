@@ -70,7 +70,7 @@ uint32_t get_physical_address(uint32_t virtual)
 
 void free_frame(void* frame)
 {
-    put_str("Freeing frame\n");
+    //put_str("Freeing frame\n");
     frame = (void*)get_physical_address((uint32_t)frame);
     int index = (uintptr_t)frame/PAGE_SIZE;
     frame_map[index] = frame_map[index] ^ 0x01;

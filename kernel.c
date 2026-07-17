@@ -4,6 +4,9 @@
 #include "Memory/paging.h"
 #include "PIC/picmapper.h"
 #include "PIC/IRQ/irqhandlers.h"
+#include "PIC/timing.h"
+#include "Threading/Scheduler/scheduler.h"
+#include "Threading/threading.h"
 
 extern char _kernel_start;
 extern char _kernel_end;
@@ -30,6 +33,8 @@ int check_a20()
     return 1;
 }
 
+
+
 void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
 {
     put_str("Kernel Loaded (16 sectors)\n");
@@ -47,8 +52,7 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
 
     irq_handlers_init();
 
-  //  __asm__ volatile ("sti");
-  //  put_str("Interrupts restored \n)");
+    timer_init(100);
 
     init_paging(memory_map, entry_count);
 
@@ -69,9 +73,28 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     put_str(buffer);
     kfree(buffer);
 
-  //  list_frames();
+    init_threading();
+
+    __asm__ volatile ("sti");
+    put_str("Interrupts restored \n)");
+
+    //unmask all interrupts
+    outb(0x21, 0x00);
+    outb(0xA1, 0x00);
+
+    put_str("Unmasked interrupts\n");
     for (;;)
-    {
-        __asm__ volatile ("hlt");
+    {   
+       __asm__ volatile ("hlt");
+    }
+}
+
+//the kernel is now on a thread with id 0. The stack has been 
+void kernel_thread_entry()
+{
+    put_str("Kernel new thread\n");
+    for (;;)
+    {   
+       __asm__ volatile ("hlt");
     }
 }
