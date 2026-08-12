@@ -15,7 +15,7 @@ read_kernel:
     xor bx, bx
 
     mov ah, 0x02
-    mov al, 24       ; Read 16 sectors
+    mov al, 64       ; Read 64 sectors
     mov ch, 0       ; Cylinder 0
     mov cl, 2       ; Sector 2
     mov dh, 0       ; Head 0

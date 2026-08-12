@@ -7,9 +7,12 @@
 #include "PIC/timing.h"
 #include "Threading/Scheduler/scheduler.h"
 #include "Threading/threading.h"
+#include "Interrupt/Syscall/syscall.h"
 
 extern char _kernel_start;
 extern char _kernel_end;
+
+void init_software_interrupts();
 
 int check_a20()
 {
@@ -32,7 +35,6 @@ int check_a20()
     *high = originalHigh;
     return 1;
 }
-
 
 
 void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
@@ -59,6 +61,7 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     uintptr_t kernel_start = (uintptr_t)&_kernel_start;
     uintptr_t kernel_end   = (uintptr_t)&_kernel_end;
 
+    //why is this still here?
     put_str("Reserving kernel memory\n");
     mark_kernel_used((uint32_t)&kernel_start, (uint32_t)&kernel_end);
 
@@ -67,13 +70,18 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     put_str("Initialized paging\n");
 
     char str[] = "On the heap\n";
-    char* buffer = kmalloc(16000);
+    char* buffer = kmalloc(sizeof(str));
 
+    /*
     strcpy(buffer, str);
     put_str(buffer);
     kfree(buffer);
-
+    */
+   
+    put_str("Initializing threading\n");
     init_threading();
+
+    init_software_interrupts();
 
     __asm__ volatile ("sti");
     put_str("Interrupts restored \n)");
@@ -83,6 +91,7 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
     outb(0xA1, 0x00);
 
     put_str("Unmasked interrupts\n");
+
     for (;;)
     {   
        __asm__ volatile ("hlt");
@@ -93,8 +102,22 @@ void kernel_main(struct BiosMemoryMap* memory_map, uint16_t entry_count)
 void kernel_thread_entry()
 {
     put_str("Kernel new thread\n");
+
     for (;;)
     {   
        __asm__ volatile ("hlt");
+    }
+}
+
+void panic(uint32_t error_code)
+{
+    __asm__ volatile ("cli");
+    put_str("KERNEL PANIC!!!\nERROR CODE: ");
+    char buffer[32];
+    put_str(uint32_to_hex(error_code, buffer));
+    put_char('\n');
+    for (;;)
+    {
+        __asm__ volatile ("hlt");
     }
 }

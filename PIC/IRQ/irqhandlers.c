@@ -69,3 +69,11 @@ void irq_handler(struct irq_frame* register_state)
 
     outb(0x20, 0x20);     // master PIC
 }
+
+void put_mod_result(uint32_t x, uint32_t y)
+{
+    put_char('\n');
+    char buffer[32];
+    put_str(uint32_to_str(x % y, buffer));
+    put_char('\n');
+}

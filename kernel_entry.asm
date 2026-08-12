@@ -18,14 +18,14 @@ _start:
         mov eax, 0xE820
 
         int 0x15;
-        jc .end
+        jc end
         cmp ebx, 0
-        jz .end
+        jz end
 
         add di, 24
         add word [entry_count], 1
         jmp .loop
-    .end:
+    end:
         jmp init_protected_mode
 
 init_protected_mode:
@@ -39,7 +39,7 @@ memory_map equ 0x8000
 
 entry_count equ 0x7FFE
 
-BITS 32s
+BITS 32
 protected_mode:
     mov ax, 0x10
     mov ds, ax

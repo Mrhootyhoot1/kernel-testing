@@ -2,6 +2,7 @@ BITS 32
 global generic_irq_handler
 extern irq_handler
 extern timer_irq_handler
+extern put_mod_result
 extern put_char
 
 %macro IRQ_HANDLER 1
@@ -33,7 +34,7 @@ irq32:
     mov esp, eax ;move the stack to the returned 
 
     popa
-    
+
     pop gs
     pop fs
     pop es

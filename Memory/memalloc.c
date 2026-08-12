@@ -179,6 +179,7 @@ void* krealloc(void* memory, size_t size)
     return new_allocation;
 }
 
+//very shit
 void kfree(void* memory)
 {
     if (memory == NULL)
@@ -219,7 +220,7 @@ void kfree(void* memory)
 
     for (uint32_t i = allocation->pageStart + 1; i < (allocation->endAddress - allocation->startAddress)/PAGE_SIZE + allocation->pageStart; i++)
     {
-        uint32_t physical = get_physical_address(page_start*PAGE_SIZE + i * PAGE_SIZE);
-        free_frame((void*)physical);
+        uint32_t addr = page_start*PAGE_SIZE + i * PAGE_SIZE;
+        free_frame((void*)addr);
     }
 }

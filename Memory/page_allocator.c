@@ -4,6 +4,8 @@
 #define PAGE_SIZE 4096
 #define MAX_MEMORY (64 * 1024 * 1024)
 #define FRAME_COUNT (MAX_MEMORY/PAGE_SIZE)
+#define HEAP_START 0x00100000
+#define FRAME_OFFSET (HEAP_START/PAGE_SIZE)
 #include <stddef.h>
 
 uint8_t frame_map[FRAME_COUNT];
@@ -20,7 +22,7 @@ void page_allocator_init()
 void* allocate_frame()
 {
     void* address = NULL;
-    for (int j = 0; j < FRAME_COUNT; j++)
+    for (int j = FRAME_OFFSET; j < FRAME_COUNT; j++)
     {
         if(!(frame_map[j] & 0x01))
         {

@@ -1,6 +1,7 @@
 #include "idthandler.h"
 #include "../strlib.h"
 #include <stdint.h>
+#include "../kernel.h"
 #include "../PIC/picmapper.h"
 
 extern void isr0();
@@ -130,6 +131,7 @@ void handle_page_fault(struct RegisterState* cpuState)
     uint32_to_str(cpuState->error_code, buffer);
     put_str(buffer);
     put_char('\n');
+    panic(INTERRUPT_PAGE_FAULT);
 }
 
 void general_fault_handler(struct RegisterState* cpuState)
@@ -140,6 +142,7 @@ void general_fault_handler(struct RegisterState* cpuState)
     put_str(" Error code: ");
     put_str(uint32_to_str(cpuState->error_code, buffer));
     put_char('\n');
+    panic(INTERRUPT_GENERAL_PROTECTION_FAULT);
 }
 
 
@@ -161,10 +164,7 @@ void exception_handler(struct RegisterState* cpuState){
             break;
     }
 
-    for (;;)
-    {
-        __asm__ volatile ("hlt");
-    }
+    panic(INTERRUPT_UNKNOWN);
 }
 
 void undefined_handler_handler()
@@ -172,8 +172,5 @@ void undefined_handler_handler()
     char message[] = "No handler found for interrupt\n";
 
     put_str(message);
-    for (;;)
-    {
-        __asm__ volatile ("hlt");
-    }
+    panic(INTERRUPT_UNKNOWN);
 }

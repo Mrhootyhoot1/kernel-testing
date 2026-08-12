@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "../Memory/paging.h"
 #include "../strlib.h"
 #include "threading.h"
@@ -27,13 +28,33 @@ struct Thread* create_thread(void (*entry)())
 {
     struct Thread* thread = (struct Thread*)kmalloc(sizeof(struct Thread));
     thread->stack_size = DEFAULT_STACK_SIZE;
-    thread->stack_start = (uint8_t*)((uintptr_t)kmalloc(DEFAULT_STACK_SIZE) + DEFAULT_STACK_SIZE);
+    thread->stack_start = (uint8_t*)(((uintptr_t)kmalloc(DEFAULT_STACK_SIZE) + DEFAULT_STACK_SIZE) & ~((uintptr_t)0xF));   
+    if (thread->stack_start == NULL)
+    {
+        return NULL;
+    }
+    char buffer[32];
     struct CPUContext* context = (struct CPUContext *)((uintptr_t)thread->stack_start - sizeof(struct CPUContext));
     thread->esp = (uint32_t)context;
     thread->state = THREAD_READY;
     thread->id = currentId;
     currentId += 1;
     thread->next = NULL;
+
+    uintptr_t raw = (uintptr_t)kmalloc(sizeof(struct FXSave) + 15);
+
+    if (raw == 0)
+    {
+        return NULL;
+    }
+
+    thread->fpu_state = (struct FXSave*)((raw + 15) & ~(uintptr_t)15);
+
+    asm volatile(
+    "fninit\n"
+    "fxsave %0\n"
+    : "=m"(thread->fpu_state)
+    );
 
     context->edi = 0x0;
     context->esi = 0x0;

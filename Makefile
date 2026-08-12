@@ -3,7 +3,7 @@ LD = ld
 AS = nasm
 OBJCOPY = objcopy
 
-CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector \
+CFLAGS = -m32 -g -ffreestanding -fno-pie -fno-stack-protector \
          -fno-asynchronous-unwind-tables -Wall -Wextra -c
 
 LDFLAGS = -m elf_i386 -nostdlib -T linker.ld
